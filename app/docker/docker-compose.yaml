@@ -1,0 +1,14 @@
+services:
+  odsd:
+    image: odsd-app
+    container_name: odsd-app
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    ports:
+      - 3000:3000
+    working_dir: /odsd/app/src
+    volumes:
+      - ../../:/odsd
+    command: bash -c "npm install && npm start"
