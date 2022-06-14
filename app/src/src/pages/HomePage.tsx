@@ -6,8 +6,45 @@ import {
   SendRounded,
 } from '@mui/icons-material';
 
+import * as tf from '@tensorflow/tfjs';
+
 export default function HomePage() {
+  const url: any = {
+    model: '/model/model.json',
+    metadata: '/model/metadata.json',
+  };
+  
   const [messages, setMessages] = React.useState<any[]>([]);
+
+  async function loadModel(url: any) {
+    try {
+      const model: any = await tf.loadGraphModel(url.model);
+      setModel(model);
+    } 
+    catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function loadMetadata(url: any) {
+    try {
+      const metadataJson = await fetch(url.metadata);
+      const metadata = await metadataJson.json();
+      setMetadata(metadata);} 
+    catch (err) {
+      console.log(err);
+    }
+  }
+
+  const [metadata, setMetadata] = React.useState<any>();
+  const [model, setModel] = React.useState<any>();
+
+  React.useEffect(()=>{
+    tf.ready().then(()=>{
+      loadModel(url);
+      loadMetadata(url);
+    });
+  },[])
 
   function send() {
     const msgEl:any = document.getElementById("message-input");
@@ -16,15 +53,63 @@ export default function HomePage() {
       if (msgEl) {
         msgEl.value = "";
       }
-      setMessages(messages.concat([{
-        message: msg,
-        isSpam: msg.indexOf("spam") != -1,
-      }]));
-      const msgStack = document.getElementById("message-stack");
-      if (msgStack) {
-        const scrollHeight = msgStack.scrollHeight;
-        msgStack.scrollTop = (scrollHeight + 168);
+
+      const inputText = msg.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
+      const OOV_INDEX = 0;
+      const sequence = inputText.map(word => {
+        let wordIndex = metadata["word_index"][word] || OOV_INDEX;
+        const VOCAB_SIZE = metadata["vocabulary_size"];
+        if (wordIndex > VOCAB_SIZE) {
+          wordIndex = OOV_INDEX;
+        }
+        return wordIndex;
+      });
+      const PAD_INDEX = 0;
+      const padSequences = (sequences:any, maxLen:any, padding = 'post', truncating = 'post', value = PAD_INDEX) => {
+        return sequences.map((seq: any) => {
+          if (seq.length > maxLen) {
+            if (truncating === 'pre') {
+              seq.splice(0, seq.length - maxLen);
+            } else {
+              seq.splice(maxLen, seq.length - maxLen);
+            }
+          }
+          if (seq.length < maxLen) {
+            const pad = [];
+            for (let i = 0; i < maxLen - seq.length; ++i) {
+              pad.push(value);
+            }
+            if (padding === 'pre') {
+              seq = pad.concat(seq);
+            } else {
+              seq = seq.concat(pad);
+            }
+          }
+          return seq;
+        });
       }
+
+      const MAX_LENGTH = metadata["max_length"];
+      const paddedSequence = padSequences([sequence], MAX_LENGTH);
+
+      const input = tf.tensor2d(paddedSequence, [1, MAX_LENGTH]);
+
+      model.executeAsync(input).then((predictOut: any) => {
+        const score: number = predictOut.dataSync()[0];
+        predictOut.dispose();
+
+        console.log(score);
+  
+        setMessages(messages.concat([{
+          message: msg,
+          isSpam: score >= 0.5,
+        }]));
+        const msgStack = document.getElementById("message-stack");
+        if (msgStack) {
+          const scrollHeight = msgStack.scrollHeight;
+          msgStack.scrollTop = (scrollHeight + 168);
+        }
+      })
     }
   }
 
@@ -78,7 +163,7 @@ export default function HomePage() {
           direction="column"
           spacing={2}
         >
-          {messages.map(msg => (
+          {messages.map((msg, i) => (
             <Stack
               sx={{
                 padding: '16px',
@@ -87,6 +172,7 @@ export default function HomePage() {
                 borderRadius: '8px',
                 alignItems: 'flex-start'
               }}
+              key={i}
             >
               <div>
                 {msg.message}
