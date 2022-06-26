@@ -19,3 +19,6 @@ This monorepo contains all parts needed to develop ODSD.
 - run `make app-up` to start React app. This will be used as the front-end for user interactions. Note: the first run is extremely slow while packages are being installed.
 
 (Optional): the above commands have a down version where you replace the `-up` with `-down` to destroy the dockers. This should be used when drastic changes are made and cache needs to be destroyed.
+
+- run `make test-build` to build docker image for test
+- run `make test-run` to run unit test

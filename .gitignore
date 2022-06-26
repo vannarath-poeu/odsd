@@ -2,8 +2,11 @@ data/*.csv
 **/.DS_Store
 **/.ipynb_checkpoints/
 **/__pycache__/
+**/.pytest_cache/
 app/src/node_modules/
 app/src/build/
 app/src/.firebase/
 
 .vscode/
+
+pipeline/env/

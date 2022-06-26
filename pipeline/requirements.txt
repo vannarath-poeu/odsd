@@ -1,0 +1,6 @@
+kfp==1.8.12
+nltk==3.7
+numpy==1.21.6
+pandas==1.3.5
+pytest==7.1.2
+tensorflow==2.9.1
