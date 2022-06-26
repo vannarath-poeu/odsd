@@ -1,0 +1,54 @@
+name: Preprocess
+inputs:
+- {name: data_path, type: String}
+- {name: bucket, type: String}
+- {name: save_path, type: String}
+- {name: model_name, type: String}
+outputs:
+- {name: Output, type: String}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - |2
+
+      if ! [ -x "$(command -v pip)" ]; then
+          python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip
+      fi
+
+      PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'google-cloud-storage' 'pandas' 'sklearn' 'fsspec' 'gcsfs' 'kfp==1.8.12' && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp -d)
+      printf "%s" "$0" > "$program_path/ephemeral_component.py"
+      python3 -m kfp.v2.components.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+    - |2+
+
+      import kfp
+      from kfp.v2 import dsl
+      from kfp.v2.dsl import *
+      from typing import *
+
+      def preprocess(data_path: str, bucket: str, save_path: str, model_name: str) -> str:
+          from google.cloud import storage
+
+          import pandas as pd
+
+          bucket_name = bucket.split('//')[-1] # Only use bucket name, without gs://
+          gcs_path = f"{bucket}/{save_path}/{model_name}"
+          model_file_name = "model.bst" # Format required by Vertex AI
+
+          df = pd.read_csv(data_path, encoding="latin-1")
+          df.to_csv(model_file_name)
+
+          upload_file_to_bucket(bucket_name, model_file_name, f"{save_path}/{model_name}/{model_file_name}")
+          return gcs_path
+
+    args:
+    - --executor_input
+    - {executorInput: null}
+    - --function_to_execute
+    - preprocess
