@@ -1,0 +1,35 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy App
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy-stg:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v3
+      - name: CD into app folder
+        run: cd app/src
+      - name: Build app
+        run: npm run build
+      - name: Deploy app
+        run: echo 'Deploy'
+
+  deploy-prd:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v3
+      - name: CD into app folder
+        run: cd app/src
+      - name: Build app
+        run: npm run build
+      - name: Deploy app
+        run: echo 'Deploy'
