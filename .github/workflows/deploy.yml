@@ -21,12 +21,14 @@ jobs:
         run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
+          entryPoint: app/src
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_TOKEN }}"
           projectId: hermesgotspammed
           channelId: stg
 
   deploy-prd:
+    needs: deploy-stg
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,6 +42,7 @@ jobs:
         run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
+          entryPoint: app/src
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_TOKEN }}"
           projectId: hermesgotspammed
