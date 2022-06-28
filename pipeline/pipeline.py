@@ -37,16 +37,21 @@ def preprocess(
   import string
   import nltk
   from nltk.corpus import stopwords
+  from nltk.tokenize import word_tokenize
+  from nltk.stem import WordNetLemmatizer
 
   def nltk_init():
     nltk.download('stopwords')
     nltk.download('punkt')
+    nltk.download('wordnet')
+    nltk.download('omw-1.4')
 
-  def remove_stopwords(text):
+  def remove_stopwords_lemmatizer(text):
+    lem = WordNetLemmatizer()
     stop_words = stopwords.words('english')
     more_stopwords = ['u', 'im', 'c']
     stop_words = stop_words + more_stopwords
-    text = ' '.join(word for word in text.split(' ') if word not in stop_words)
+    text = ' '.join(lem.lemmatize(word) for word in text.split(' ') if word not in stop_words)
     return text
 
   def clean_text(text):
@@ -67,13 +72,14 @@ def preprocess(
     return text
 
   def process_df(df):
+    df.drop_duplicates(subset=['message'])
     df['processed'] = df['message'].apply(clean_text)
-    df['processed'] = df['processed'].apply(remove_stopwords)
+    df['processed'] = df['processed'].apply(remove_stopwords_lemmatizer)
     df['processed'] = df['processed'].apply(stemm_text)
     return df
   
   def encode_target(df):
-    df['target_encoded'] = df['target'].apply(lambda x: 1 if x == "spam" else 0)
+    df['target'] = df['target'].apply(lambda x: 1 if x == "spam" else 0)
     return df
   
   nltk_init()
