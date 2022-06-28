@@ -10,26 +10,37 @@ on:
 jobs:
   deploy-stg:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    defaults:
+      run:
+        working-directory: app/src
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: cd app/src && npm install
+        run: npm install
       - name: Build app
-        run: cd app/src && npm run build
-      - name: Deploy app
-        run: echo 'Deploy'
+        run: npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_TOKEN }}"
+          projectId: hermesgotspammed
+          channelId: stg
 
   deploy-prd:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    defaults:
+      run:
+        working-directory: app/src
+    environment: prd
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: cd app/src && npm install
       - name: Build app
         run: cd app/src && npm run build
-      - name: Deploy app
-        run: echo 'Deploy'
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_TOKEN }}"
+          projectId: hermesgotspammed
+          channelId: live

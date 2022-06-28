@@ -113,6 +113,21 @@ export default function HomePage() {
     }
   }
 
+  async function reportSpam(i: number) {
+    const message = messages[i];
+
+    const response = fetch("https://asia-southeast1-odsd-354513.cloudfunctions.net/report-spam", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({ "message": message.message }),
+    });
+    const msgs = messages.slice(undefined, i).concat(messages.slice(i + 1));
+    
+    setMessages(msgs);
+  }
+
   return (
     <Stack
       sx={{
@@ -181,7 +196,7 @@ export default function HomePage() {
                 <Stack
                   sx={{ alignSelf: 'flex-end' }}
                 >
-                  <Button size="small" onClick={() => alert("Reported")}>Report Spam</Button>
+                  <Button size="small" onClick={() => reportSpam(i)}>Report Spam</Button>
                 </Stack>
               )}
             </Stack>
