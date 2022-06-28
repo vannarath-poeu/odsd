@@ -14,10 +14,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
-      - name: CD into app folder
-        run: cd app/src
       - name: Build app
-        run: npm run build
+        run: cd app/src && npm run build
       - name: Deploy app
         run: echo 'Deploy'
 
@@ -27,9 +25,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
-      - name: CD into app folder
-        run: cd app/src
       - name: Build app
-        run: npm run build
+        run: cd app/src && npm run build
       - name: Deploy app
         run: echo 'Deploy'
